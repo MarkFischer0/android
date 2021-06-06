@@ -1,10 +1,16 @@
 package ru.mirea.matveev.audiorecord;
 
-import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,6 +27,11 @@ import java.io.IOException;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_PERMISSION = 100;
+    private String[] PERMISSIONS = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.RECORD_AUDIO
+    };
+    private boolean isWork;
     private Button startRecordButton;
     private Button stopRecordButton;
     private MediaRecorder mediaRecorder;
@@ -29,12 +40,36 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        startRecordButton = findViewById(R.id.btnStart);
-        stopRecordButton = findViewById(R.id.btnStop);
-        // инициализация объекта MediaRecorder
-        mediaRecorder = new MediaRecorder();
+// проверка наличия разрешений на выполнение аудиозаписи и сохранения на карту памяти
+        isWork = hasPermissions(this, PERMISSIONS);
+        if (!isWork) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS,
+                    REQUEST_CODE_PERMISSION);
+            startRecordButton = findViewById(R.id.btnStart);
+            stopRecordButton = findViewById(R.id.btnStop);
+            // инициализация объекта MediaRecorder
+            mediaRecorder = new MediaRecorder();
+        }
     }
-    // нажатие на кнопку старт
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_PERMISSION) {
+            // permission granted
+            isWork = grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+        }
+    }
     public void onRecordStart(View view) {
         try {
             startRecordButton.setEnabled(false);
@@ -47,11 +82,15 @@ public class MainActivity extends AppCompatActivity {
     }
     // нажатие на копку стоп
     public void onStopRecord(View view) {
-        startRecordButton.setEnabled(true);
-        stopRecordButton.setEnabled(false);
-        startRecordButton.requestFocus();
-        stopRecording();
-        processAudioFile();
+        try {
+            startRecordButton.setEnabled(true);
+            stopRecordButton.setEnabled(false);
+            startRecordButton.requestFocus();
+            stopRecording();
+            processAudioFile();
+        } catch (Exception e) {
+            Log.e(TAG, "Caught io exception " + e.getMessage());
+        }
     }
     private void startRecording() throws IOException {
         // проверка доступности sd - карты

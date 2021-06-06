@@ -16,12 +16,13 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private SensorManager sensorManager;
     private ListView listCountSensor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         listCountSensor = findViewById(R.id.list_view);
-        SensorManager sensorManager =
+        sensorManager =
                 (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
 
@@ -41,3 +42,4 @@ public class MainActivity extends AppCompatActivity {
                         new int[]{android.R.id.text1, android.R.id.text2});
         listCountSensor.setAdapter(mHistory);
     }
+}

@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imageView = findViewById(R.id.imageView);
-
+        // Выполняется проверка на наличие разрешений на использование камеры и запись
         int cameraPermissionStatus =
                 ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         int storagePermissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(cameraIntent, CAMERA_REQUEST);
         }
     }
+
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "IMAGE_" + timeStamp + "_";
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 // производится проверка полученного результата от пользователя на запрос разрешения Camera
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CODE_PERMISSION_CAMERA) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
